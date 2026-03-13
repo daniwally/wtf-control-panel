@@ -1,0 +1,199 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Agent {
+  id                String            @id @default(cuid())
+  name              String            @unique
+  type              String            // main, subagent, etc.
+  status            AgentStatus       @default(OFFLINE)
+  lastSeen          DateTime?
+  lastActivity      DateTime?
+  uptime            Int               @default(0) // seconds
+  restartCount      Int               @default(0)
+  version           String?
+  environment       String            @default("production")
+  config            Json?
+  
+  // Relationships
+  metrics           AgentMetric[]
+  logs              AgentLog[]
+  alerts            Alert[]
+  heartbeats        Heartbeat[]
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  
+  @@map("agents")
+}
+
+model AgentMetric {
+  id                String            @id @default(cuid())
+  agentId           String
+  agent             Agent             @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  
+  // Performance Metrics
+  messagesProcessed Int               @default(0)
+  tasksCompleted    Int               @default(0)
+  tasksFailed       Int               @default(0)
+  responseTimeMs    Float?
+  successRate       Float?
+  errorRate         Float?
+  
+  // Resource Usage
+  tokensConsumed    Int               @default(0)
+  costUsd           Float             @default(0)
+  apiCalls          Int               @default(0)
+  memoryUsageMb     Float?
+  cpuUsage          Float?
+  
+  // Business Metrics
+  vencimientosProcessed Int           @default(0)
+  emailsProcessed   Int               @default(0)
+  alertsGenerated   Int               @default(0)
+  
+  timestamp         DateTime          @default(now())
+  
+  @@map("agent_metrics")
+  @@index([agentId, timestamp])
+}
+
+model AgentLog {
+  id                String            @id @default(cuid())
+  agentId           String
+  agent             Agent             @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  
+  level             LogLevel          @default(INFO)
+  message           String
+  context           Json?             // Additional context data
+  source            String?           // Which component generated the log
+  sessionId         String?
+  userId            String?
+  
+  timestamp         DateTime          @default(now())
+  
+  @@map("agent_logs")
+  @@index([agentId, timestamp])
+  @@index([level, timestamp])
+}
+
+model Alert {
+  id                String            @id @default(cuid())
+  agentId           String?
+  agent             Agent?            @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  
+  type              AlertType
+  severity          AlertSeverity
+  title             String
+  message           String
+  details           Json?
+  
+  // Alert lifecycle
+  status            AlertStatus       @default(ACTIVE)
+  acknowledgedAt    DateTime?
+  acknowledgedBy    String?
+  resolvedAt        DateTime?
+  resolvedBy        String?
+  
+  // Notification tracking
+  notificationsSent Json?             // Track where notifications were sent
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  
+  @@map("alerts")
+  @@index([status, severity, createdAt])
+}
+
+model Heartbeat {
+  id                String            @id @default(cuid())
+  agentId           String
+  agent             Agent             @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  
+  status            HeartbeatStatus
+  responseTime      Float?            // Response time in ms
+  checks            Json?             // Results of health checks
+  message           String?
+  
+  timestamp         DateTime          @default(now())
+  
+  @@map("heartbeats")
+  @@index([agentId, timestamp])
+}
+
+model SystemMetric {
+  id                String            @id @default(cuid())
+  
+  // Overall system metrics
+  totalAgents       Int               @default(0)
+  activeAgents      Int               @default(0)
+  totalMessages     Int               @default(0)
+  totalCost         Float             @default(0)
+  
+  // Aggregate performance
+  avgResponseTime   Float?
+  avgSuccessRate    Float?
+  totalErrors       Int               @default(0)
+  
+  timestamp         DateTime          @default(now())
+  
+  @@map("system_metrics")
+  @@index([timestamp])
+}
+
+// Enums
+enum AgentStatus {
+  ONLINE
+  OFFLINE
+  STARTING
+  STOPPING
+  ERROR
+}
+
+enum LogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  FATAL
+}
+
+enum AlertType {
+  AGENT_OFFLINE
+  HIGH_ERROR_RATE
+  SLOW_RESPONSE
+  VENCIMIENTO_DETECTED
+  DISK_SPACE_LOW
+  COST_SPIKE
+  HEARTBEAT_MISSED
+  TASK_FAILED
+  SYSTEM_ERROR
+}
+
+enum AlertSeverity {
+  CRITICAL
+  WARNING
+  INFO
+}
+
+enum AlertStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  RESOLVED
+  SUPPRESSED
+}
+
+enum HeartbeatStatus {
+  OK
+  WARNING
+  ERROR
+  TIMEOUT
+}
