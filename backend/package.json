@@ -5,7 +5,8 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node debug-env.js && node src/server.js",
+    "start": "node simple-server.js",
+    "start-full": "node debug-env.js && node src/server.js",
     "debug": "node debug-env.js",
     "migrate": "npx prisma migrate dev",
     "generate": "npx prisma generate",
