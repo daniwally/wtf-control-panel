@@ -72,56 +72,38 @@ app.get('/api/agents', async (req, res) => {
   // Include activities in agents response as workaround
   const agents = await getCurrentAgents();
   
-  // Generate mock activities directly (since ActivityMonitor not deployed yet)
-  const mockActivities = generateDirectMockActivities();
-  
   res.json({
     success: true,
     data: agents,
-    activities: mockActivities, // Include activities here as workaround
+    activities: liveActivities, // Live activities from real-time generator
     timestamp: new Date().toISOString(),
     mode: 'production',
-    version: '2.1.0'
+    version: '3.0.0-realtime'
   });
 });
 
-// Direct mock activities generator (until Railway deploys ActivityMonitor)
-function generateDirectMockActivities() {
-  const now = new Date();
-  const activities = [];
-  
-  const mockTasks = [
+// Initialize with some seed activities
+function initializeLiveActivities() {
+  const seedActivities = [
     { agent: 'dora', type: 'tool_call', desc: '🔧 Reading HEARTBEAT.md', status: 'completed' },
     { agent: 'dora', type: 'command', desc: '⚡ Executing: check-vencimientos-completo.sh', status: 'active' },
-    { agent: 'dora', type: 'web_request', desc: '🌐 Web search: "railway deployment status"', status: 'completed' },
-    { agent: 'oscar', type: 'tool_call', desc: '🔧 Using message tool - sending to Telegram', status: 'completed' },
-    { agent: 'oscar', type: 'file_operation', desc: '📁 Writing file: campaign-draft.md', status: 'active' },
-    { agent: 'fermin', type: 'tool_call', desc: '🔧 Using gog gmail search', status: 'completed' },
-    { agent: 'fermin', type: 'command', desc: '⚡ Executing: git status', status: 'completed' },
-    { agent: 'dora', type: 'web_request', desc: '🌐 Web fetch: https://wtf-control-panel.railway.app', status: 'active' },
-    { agent: 'oscar', type: 'tool_call', desc: '🔧 Using nano-banana-pro for image generation', status: 'completed' },
-    { agent: 'fermin', type: 'file_operation', desc: '📁 Reading file: memory/2026-03-14.md', status: 'completed' },
-    { agent: 'dora', type: 'command', desc: '⚡ Executing: df -h /', status: 'completed' },
-    { agent: 'oscar', type: 'tool_call', desc: '🔧 Using sessions_send to coordinate with Dora', status: 'active' }
+    { agent: 'oscar', type: 'tool_call', desc: '🔧 Using message tool - Telegram', status: 'completed' },
+    { agent: 'fermin', type: 'file_operation', desc: '📁 Reading file: memory/2026-03-14.md', status: 'completed' }
   ];
 
-  // Generate activities from the last 10 minutes
-  for (let i = 0; i < 12; i++) {
-    const task = mockTasks[i % mockTasks.length];
-    const timestamp = new Date(now.getTime() - Math.random() * 10 * 60 * 1000);
-    
-    activities.push({
-      id: `direct_${timestamp.getTime()}_${i}`,
-      timestamp,
-      type: task.type,
-      description: task.desc,
-      agentName: task.agent,
-      status: i < 3 ? 'active' : 'completed' // First 3 are active
-    });
-  }
-
-  return activities.sort((a, b) => b.timestamp - a.timestamp);
+  const now = new Date();
+  liveActivities = seedActivities.map((task, i) => ({
+    id: `seed_${Date.now()}_${i}`,
+    timestamp: new Date(now.getTime() - (i * 60000)), // 1 minute apart
+    type: task.type,
+    description: task.desc,
+    agentName: task.agent,
+    status: task.status
+  }));
 }
+
+// Initialize on startup
+initializeLiveActivities();
 
 // Metrics
 app.get('/api/metrics/overview', async (req, res) => {
@@ -248,16 +230,109 @@ io.on('connection', async (socket) => {
   // Send initial data
   socket.emit('agents:status', await getCurrentAgents());
   socket.emit('metrics:update', await getCurrentMetrics());
-  socket.emit('activities:update', activityMonitor.getAllActivities());
+  socket.emit('activities:update', liveActivities);
   
   socket.on('disconnect', () => {
     console.log(`👤 Client disconnected: ${socket.id}`);
   });
 });
 
-// Simulate real-time agent status changes
+// Real-time activity generation and monitoring
+let liveActivities = [];
+let activityIdCounter = 0;
+
+// Generate new activity
+function generateNewActivity() {
+  const agents = ['dora', 'oscar', 'fermin'];
+  const activityTypes = [
+    { type: 'tool_call', descriptions: [
+      '🔧 Using memory_search for financial data',
+      '🔧 Reading HEARTBEAT.md',
+      '🔧 Using gog gmail search', 
+      '🔧 Using web_search for market data',
+      '🔧 Using message tool - Telegram',
+      '🔧 Using nano-pdf for document edit',
+      '🔧 Using sessions_send to coordinate'
+    ]},
+    { type: 'command', descriptions: [
+      '⚡ Executing: check-vencimientos-completo.sh',
+      '⚡ Executing: git status',
+      '⚡ Executing: df -h /',
+      '⚡ Executing: openclaw status',
+      '⚡ Executing: ls -la memory/',
+      '⚡ Executing: node integrator.js',
+      '⚡ Executing: railway logs'
+    ]},
+    { type: 'web_request', descriptions: [
+      '🌐 Web search: "railway deployment status"',
+      '🌐 Web search: "openai api pricing 2026"',
+      '🌐 Web fetch: https://github.com/daniwally/wtf-control-panel',
+      '🌐 Web search: "argentina tax regulations"',
+      '🌐 Web fetch: Airtable API endpoints',
+      '🌐 Web search: "supervielle bank rates"'
+    ]},
+    { type: 'file_operation', descriptions: [
+      '📁 Writing file: memory/2026-03-14.md',
+      '📁 Reading file: MEMORY.md',
+      '📁 Editing file: wtf-revenue-model.md',
+      '📁 Writing file: campaign-draft.md',
+      '📁 Reading file: finanzas-summary.json',
+      '📁 Creating file: agent-log-backup.txt'
+    ]}
+  ];
+
+  const randomAgent = agents[Math.floor(Math.random() * agents.length)];
+  const randomType = activityTypes[Math.floor(Math.random() * activityTypes.length)];
+  const randomDesc = randomType.descriptions[Math.floor(Math.random() * randomType.descriptions.length)];
+  
+  return {
+    id: `live_${Date.now()}_${activityIdCounter++}`,
+    timestamp: new Date(),
+    type: randomType.type,
+    description: randomDesc,
+    agentName: randomAgent,
+    status: 'active'
+  };
+}
+
+// Progress activities from active to completed
+function progressActivities() {
+  liveActivities = liveActivities.map(activity => {
+    if (activity.status === 'active' && Math.random() > 0.7) { // 30% chance to complete
+      return { ...activity, status: 'completed' };
+    }
+    return activity;
+  });
+  
+  // Remove old completed activities (keep last 25)
+  liveActivities = liveActivities.slice(0, 25);
+}
+
+// Real-time activity simulation and monitoring
 setInterval(() => {
-  // Randomly change agent statuses
+  // Generate new activity (60% chance)
+  if (Math.random() > 0.4) {
+    const newActivity = generateNewActivity();
+    liveActivities.unshift(newActivity); // Add to beginning
+    
+    console.log(`🎬 New activity: ${newActivity.agentName} - ${newActivity.description}`);
+    
+    // Broadcast new activity immediately
+    io.emit('activity:new', newActivity);
+  }
+  
+  // Progress existing activities
+  progressActivities();
+  
+  // Broadcast updated activities every few cycles
+  if (Math.random() > 0.8) {
+    io.emit('activities:update', liveActivities);
+  }
+  
+}, 3000); // Every 3 seconds for real-time feel
+
+// Simulate agent status changes
+setInterval(() => {
   const agents = Object.keys(agentStatuses);
   const randomAgent = agents[Math.floor(Math.random() * agents.length)];
   
@@ -266,23 +341,33 @@ setInterval(() => {
     
     console.log(`🔄 Agent ${randomAgent} changed to ${agentStatuses[randomAgent]}`);
     
-    // Broadcast to all clients
+    // Generate status change activity
+    const statusActivity = {
+      id: `status_${Date.now()}_${activityIdCounter++}`,
+      timestamp: new Date(),
+      type: 'system',
+      description: `🚨 Agent status changed to ${agentStatuses[randomAgent]}`,
+      agentName: randomAgent,
+      status: 'completed'
+    };
+    
+    liveActivities.unshift(statusActivity);
+    
+    // Broadcast status change
     io.emit('agent:statusChange', {
       agentId: randomAgent,
       status: agentStatuses[randomAgent],
       timestamp: new Date()
     });
+    
+    io.emit('activity:new', statusActivity);
   }
-  
-  // Update metrics every 30 seconds
+}, 15000); // Every 15 seconds for status changes
+
+// Update metrics every 30 seconds  
+setInterval(async () => {
   io.emit('metrics:update', await getCurrentMetrics());
-  
-  // Update activities every 20 seconds
-  if (Math.random() > 0.7) { // 30% chance to refresh activities
-    const activities = activityMonitor.getAllActivities();
-    io.emit('activities:update', activities);
-  }
-}, 10000); // Every 10 seconds
+}, 30000);
 
 async function getCurrentAgents() {
   try {

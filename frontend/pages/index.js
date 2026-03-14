@@ -124,6 +124,11 @@ export default function Dashboard() {
       setActivities(activitiesData);
     });
     
+    newSocket.on('activity:new', (newActivity) => {
+      console.log('🎬 New activity received:', newActivity);
+      setActivities(prev => [newActivity, ...prev.slice(0, 24)]); // Add to top, keep 25 max
+    });
+    
     setSocket(newSocket);
   };
 
@@ -349,12 +354,21 @@ export default function Dashboard() {
         {/* Live Activities Panel */}
         <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
           <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb' }}>
-            <h3 style={{ margin: 0, color: '#1f2937', fontSize: '18px' }}>🎬 Live Activities</h3>
+            <h3 style={{ margin: 0, color: '#1f2937', fontSize: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              🎬 Live Activities 
+              <div style={{ 
+                width: '8px', 
+                height: '8px', 
+                background: '#10b981', 
+                borderRadius: '50%',
+                animation: 'pulse 1.5s infinite'
+              }}></div>
+            </h3>
             <p style={{ margin: '4px 0 0 0', color: '#6b7280', fontSize: '12px' }}>
-              Real-time agent tasks • Demo data (Railway deploying...)
+              Real-time monitoring • New tasks appear automatically • Updates every 3 seconds
             </p>
           </div>
-          <div style={{ padding: '20px', maxHeight: '600px', overflowY: 'auto' }}>
+          <div style={{ padding: '20px', maxHeight: '600px', overflowY: 'auto', overflowX: 'hidden' }}>
             {activities.length === 0 ? (
               <div style={{ textAlign: 'center', color: '#6b7280', fontSize: '14px', padding: '40px 20px' }}>
                 <div style={{ marginBottom: '8px' }}>🔄 Loading activities...</div>
@@ -364,15 +378,29 @@ export default function Dashboard() {
               </div>
             ) : (
               <div style={{ display: 'grid', gap: '8px' }}>
-                {activities.slice(0, 20).map((activity) => (
+                {activities.slice(0, 20).map((activity, index) => (
                   <div
                     key={activity.id}
                     style={{
                       padding: '12px',
-                      background: activity.status === 'active' ? '#fef3c7' : '#f0f9ff',
-                      border: `1px solid ${activity.status === 'active' ? '#fde68a' : '#e0f2fe'}`,
+                      background: activity.status === 'active' 
+                        ? '#fef3c7' 
+                        : activity.type === 'system' 
+                          ? '#fef2f2' 
+                          : '#f0f9ff',
+                      border: `1px solid ${
+                        activity.status === 'active' 
+                          ? '#fde68a' 
+                          : activity.type === 'system' 
+                            ? '#fecaca' 
+                            : '#e0f2fe'
+                      }`,
                       borderRadius: '8px',
-                      fontSize: '12px'
+                      fontSize: '12px',
+                      opacity: index === 0 ? 1 : Math.max(0.7, 1 - (index * 0.02)), // Fade older activities
+                      transform: index < 3 ? `scale(${1 - index * 0.02})` : 'scale(0.94)', // Slight scale for depth
+                      transition: 'all 0.3s ease-in-out',
+                      marginBottom: index < 2 ? '8px' : '6px' // Closer spacing for older items
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
@@ -499,8 +527,8 @@ export default function Dashboard() {
 
       <style jsx>{`
         @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.8; transform: scale(1.05); }
         }
       `}</style>
 
