@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import io from 'socket.io-client';
-import PixelWorld from '../components/PixelWorld';
+import AdvancedPixelWorld from '../components/AdvancedPixelWorld';
 
 export default function Dashboard() {
   const [agents, setAgents] = useState([]);
@@ -230,8 +230,8 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Pixel World */}
-      <PixelWorld agents={agents} activities={activities} />
+      {/* Advanced Pixel World */}
+      <AdvancedPixelWorld agents={agents} activities={activities} />
 
       {/* Metrics Overview */}
       {metrics && (
