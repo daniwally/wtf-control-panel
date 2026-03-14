@@ -4,48 +4,52 @@ export default function Dashboard() {
   const [agents, setAgents] = useState([]);
   const [metrics, setMetrics] = useState(null);
   const [alerts, setAlerts] = useState([]);
-  const [activities, setActivities] = useState([
-    {
-      id: 'temp_1',
-      timestamp: new Date(Date.now() - 120000),
-      description: '🔧 Reading HEARTBEAT.md',
-      agentName: 'dora',
-      status: 'completed'
-    },
-    {
-      id: 'temp_2', 
-      timestamp: new Date(Date.now() - 60000),
-      description: '⚡ Executing: check-vencimientos-completo.sh',
-      agentName: 'dora',
-      status: 'active'
-    },
-    {
-      id: 'temp_3',
-      timestamp: new Date(Date.now() - 180000),
-      description: '🔧 Using message tool - sending to Telegram',
-      agentName: 'oscar',
-      status: 'completed'
-    },
-    {
-      id: 'temp_4',
-      timestamp: new Date(Date.now() - 45000),
-      description: '🌐 Web search: "railway deployment status"',
-      agentName: 'dora',
-      status: 'active'
-    },
-    {
-      id: 'temp_5',
-      timestamp: new Date(Date.now() - 300000),
-      description: '📁 Reading file: memory/2026-03-14.md',
-      agentName: 'fermin',
-      status: 'completed'
-    }
-  ]);
+  const [activities, setActivities] = useState([]);
   const [connected, setConnected] = useState(true);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Mock data for demonstration
+    // Set mock data after component mounts (client-side only)
+    const now = Date.now();
+    
+    setActivities([
+      {
+        id: 'temp_1',
+        timestamp: new Date(now - 120000),
+        description: '🔧 Reading HEARTBEAT.md',
+        agentName: 'dora',
+        status: 'completed'
+      },
+      {
+        id: 'temp_2', 
+        timestamp: new Date(now - 60000),
+        description: '⚡ Executing: check-vencimientos-completo.sh',
+        agentName: 'dora',
+        status: 'active'
+      },
+      {
+        id: 'temp_3',
+        timestamp: new Date(now - 180000),
+        description: '🔧 Using message tool - sending to Telegram',
+        agentName: 'oscar',
+        status: 'completed'
+      },
+      {
+        id: 'temp_4',
+        timestamp: new Date(now - 45000),
+        description: '🌐 Web search: "railway deployment status"',
+        agentName: 'dora',
+        status: 'active'
+      },
+      {
+        id: 'temp_5',
+        timestamp: new Date(now - 300000),
+        description: '📁 Reading file: memory/2026-03-14.md',
+        agentName: 'fermin',
+        status: 'completed'
+      }
+    ]);
+
     setAgents([
       {
         id: 'dora-001',
