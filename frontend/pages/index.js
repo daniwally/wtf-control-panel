@@ -291,7 +291,10 @@ export default function Dashboard() {
           <div style={{ padding: '20px', maxHeight: '600px', overflowY: 'auto' }}>
             {activities.length === 0 ? (
               <div style={{ textAlign: 'center', color: '#6b7280', fontSize: '14px', padding: '40px 20px' }}>
-                🔄 Loading activities...
+                <div style={{ marginBottom: '8px' }}>🔄 Loading activities...</div>
+                <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                  Waiting for Railway backend to deploy v2.1.0
+                </div>
               </div>
             ) : (
               <div style={{ display: 'grid', gap: '8px' }}>
