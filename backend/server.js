@@ -74,6 +74,18 @@ app.get('/api/agents', (req, res) => {
         activeAlerts: 1,
         totalLogs: 8,
         totalMetrics: 23
+      },
+      {
+        id: 'fermin-001',
+        name: 'fermin',
+        type: 'assistant',
+        status: 'ONLINE',
+        lastSeen: new Date(),
+        lastActivity: new Date(),
+        uptime: 7200,
+        activeAlerts: 0,
+        totalLogs: 32,
+        totalMetrics: 67
       }
     ],
     timestamp: new Date().toISOString(),
