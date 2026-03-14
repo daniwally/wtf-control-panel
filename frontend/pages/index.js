@@ -21,7 +21,7 @@ export default function Dashboard() {
   }, []);
 
   const setupWebSocket = () => {
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:4000';
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'wss://wtf-control-panel-production-6dc0.up.railway.app';
     const newSocket = io(wsUrl);
     
     newSocket.on('connect', () => {
@@ -63,7 +63,7 @@ export default function Dashboard() {
 
   const fetchInitialData = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://wtf-control-panel-production-6dc0.up.railway.app/api';
       
       // Fetch agents (includes activities as workaround)
       const agentsResponse = await fetch(`${apiUrl}/agents`);
