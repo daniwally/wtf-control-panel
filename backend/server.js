@@ -47,10 +47,11 @@ app.get('/health', (req, res) => {
 // Root
 app.get('/', (req, res) => {
   res.json({
-    message: 'WTF Control Panel API - PRODUCTION MODE',
+    message: 'WTF Control Panel API - PRODUCTION MODE + ACTIVITIES',
     mode: 'production',
+    version: '2.0.0',
     timestamp: new Date().toISOString(),
-    endpoints: ['/api/agents', '/api/metrics/overview', '/api/alerts/active']
+    endpoints: ['/api/agents', '/api/metrics/overview', '/api/alerts/active', '/api/activities']
   });
 });
 
@@ -182,7 +183,7 @@ app.use('*', (req, res) => {
     error: 'Endpoint not found',
     path: req.originalUrl,
     mode: 'production',
-    availableEndpoints: ['/health', '/api/agents', '/api/metrics/overview', '/api/alerts/active'],
+    availableEndpoints: ['/health', '/api/agents', '/api/metrics/overview', '/api/alerts/active', '/api/activities'],
     timestamp: new Date().toISOString()
   });
 });
