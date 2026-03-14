@@ -5,7 +5,73 @@ export default function Dashboard() {
   const [agents, setAgents] = useState([]);
   const [metrics, setMetrics] = useState(null);
   const [alerts, setAlerts] = useState([]);
-  const [activities, setActivities] = useState([]);
+  const [activities, setActivities] = useState([
+    // Emergency hardcoded activities until Railway deploys backend
+    {
+      id: 'temp_1',
+      timestamp: new Date(Date.now() - 120000),
+      type: 'tool_call',
+      description: '🔧 Reading HEARTBEAT.md',
+      agentName: 'dora',
+      status: 'completed'
+    },
+    {
+      id: 'temp_2', 
+      timestamp: new Date(Date.now() - 60000),
+      type: 'command',
+      description: '⚡ Executing: check-vencimientos-completo.sh',
+      agentName: 'dora',
+      status: 'active'
+    },
+    {
+      id: 'temp_3',
+      timestamp: new Date(Date.now() - 180000),
+      type: 'tool_call',
+      description: '🔧 Using message tool - sending to Telegram',
+      agentName: 'oscar',
+      status: 'completed'
+    },
+    {
+      id: 'temp_4',
+      timestamp: new Date(Date.now() - 45000),
+      type: 'web_request',
+      description: '🌐 Web search: "railway deployment status"',
+      agentName: 'dora',
+      status: 'active'
+    },
+    {
+      id: 'temp_5',
+      timestamp: new Date(Date.now() - 300000),
+      type: 'file_operation',
+      description: '📁 Reading file: memory/2026-03-14.md',
+      agentName: 'fermin',
+      status: 'completed'
+    },
+    {
+      id: 'temp_6',
+      timestamp: new Date(Date.now() - 90000),
+      type: 'tool_call',
+      description: '🔧 Using gog gmail search',
+      agentName: 'fermin',
+      status: 'completed'
+    },
+    {
+      id: 'temp_7',
+      timestamp: new Date(Date.now() - 30000),
+      type: 'command',
+      description: '⚡ Executing: git status',
+      agentName: 'oscar',
+      status: 'active'
+    },
+    {
+      id: 'temp_8',
+      timestamp: new Date(Date.now() - 240000),
+      type: 'web_request',
+      description: '🌐 Web fetch: WTF Control Panel status',
+      agentName: 'dora',
+      status: 'completed'
+    }
+  ]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [connected, setConnected] = useState(false);
@@ -285,7 +351,7 @@ export default function Dashboard() {
           <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb' }}>
             <h3 style={{ margin: 0, color: '#1f2937', fontSize: '18px' }}>🎬 Live Activities</h3>
             <p style={{ margin: '4px 0 0 0', color: '#6b7280', fontSize: '12px' }}>
-              Real-time agent tasks • Last 20 activities
+              Real-time agent tasks • Demo data (Railway deploying...)
             </p>
           </div>
           <div style={{ padding: '20px', maxHeight: '600px', overflowY: 'auto' }}>
@@ -293,7 +359,7 @@ export default function Dashboard() {
               <div style={{ textAlign: 'center', color: '#6b7280', fontSize: '14px', padding: '40px 20px' }}>
                 <div style={{ marginBottom: '8px' }}>🔄 Loading activities...</div>
                 <div style={{ fontSize: '12px', color: '#9ca3af' }}>
-                  Waiting for Railway backend to deploy v2.1.0
+                  Railway deployment pending...
                 </div>
               </div>
             ) : (
