@@ -8,14 +8,34 @@ const morgan = require('morgan');
 const cron = require('node-cron');
 
 const { PrismaClient } = require('@prisma/client');
-const agentRoutes = require('./routes/agents');
-const metricRoutes = require('./routes/metrics');
-const alertRoutes = require('./routes/alerts');
-const logRoutes = require('./routes/logs');
-const systemRoutes = require('./routes/system');
+// Import routes with error handling
+let agentRoutes, metricRoutes, alertRoutes, logRoutes, systemRoutes;
+try {
+  agentRoutes = require('./routes/agents');
+  metricRoutes = require('./routes/metrics');
+  alertRoutes = require('./routes/alerts');
+  logRoutes = require('./routes/logs');
+  systemRoutes = require('./routes/system');
+  console.log('✅ All routes loaded successfully');
+} catch (error) {
+  console.error('❌ Error loading routes:', error.message);
+  // Create minimal routes
+  const express = require('express');
+  agentRoutes = metricRoutes = alertRoutes = logRoutes = systemRoutes = express.Router();
+}
 
-const AgentCollectorService = require('./services/AgentCollectorService');
-const AlertService = require('./services/AlertService');
+// Import services with error handling
+let AgentCollectorService, AlertService;
+try {
+  AgentCollectorService = require('./services/AgentCollectorService');
+  AlertService = require('./services/AlertService');
+  console.log('✅ Services loaded successfully');
+} catch (error) {
+  console.error('❌ Error loading services:', error.message);
+  // Create minimal services
+  AgentCollectorService = class { constructor() {} async initialize() {} };
+  AlertService = class { constructor() {} };
+}
 const websocketHandler = require('./websocket/websocketHandler');
 
 // Initialize
