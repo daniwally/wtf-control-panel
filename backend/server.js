@@ -68,11 +68,18 @@ app.get('/api', (req, res) => {
 // Agents
 app.get('/api/agents', async (req, res) => {
   console.log('📊 /api/agents called');
+  
+  // Include activities in agents response as workaround
+  const agents = await getCurrentAgents();
+  const recentActivities = activityMonitor ? activityMonitor.getAllActivities() : [];
+  
   res.json({
     success: true,
-    data: await getCurrentAgents(),
+    data: agents,
+    activities: recentActivities, // Include activities here as workaround
     timestamp: new Date().toISOString(),
-    mode: 'production'
+    mode: 'production',
+    version: '2.0.0'
   });
 });
 

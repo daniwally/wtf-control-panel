@@ -65,11 +65,16 @@ export default function Dashboard() {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
       
-      // Fetch agents
+      // Fetch agents (includes activities as workaround)
       const agentsResponse = await fetch(`${apiUrl}/agents`);
       if (!agentsResponse.ok) throw new Error('Failed to fetch agents');
       const agentsData = await agentsResponse.json();
       setAgents(agentsData.data || []);
+      
+      // Get activities from agents response (workaround for Railway cache)
+      if (agentsData.activities) {
+        setActivities(agentsData.activities);
+      }
       
       // Fetch metrics
       const metricsResponse = await fetch(`${apiUrl}/metrics/overview`);
@@ -83,11 +88,16 @@ export default function Dashboard() {
       const alertsData = await alertsResponse.json();
       setAlerts(alertsData.data || []);
       
-      // Fetch activities
-      const activitiesResponse = await fetch(`${apiUrl}/activities`);
-      if (!activitiesResponse.ok) throw new Error('Failed to fetch activities');
-      const activitiesData = await activitiesResponse.json();
-      setActivities(activitiesData.data || []);
+      // Try to fetch activities (fallback to agents response)
+      try {
+        const activitiesResponse = await fetch(`${apiUrl}/activities`);
+        if (activitiesResponse.ok) {
+          const activitiesData = await activitiesResponse.json();
+          setActivities(activitiesData.data || []);
+        }
+      } catch {
+        console.log('Activities API not available, using fallback from agents response');
+      }
       
     } catch (err) {
       setError(err.message);
