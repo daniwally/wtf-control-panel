@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import io from 'socket.io-client';
+import PixelOffice from '../components/PixelOffice';
 
 export default function Dashboard() {
   const [agents, setAgents] = useState([]);
@@ -229,6 +230,9 @@ export default function Dashboard() {
         </div>
       )}
 
+      {/* Pixel Office */}
+      <PixelOffice agents={agents} activities={activities} />
+
       {/* Metrics Overview */}
       {metrics && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '30px' }}>
@@ -258,7 +262,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)', gap: '20px', marginTop: '30px' }}>
         {/* Agents Panel */}
         <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px 24px 0', marginBottom: '20px' }}>
