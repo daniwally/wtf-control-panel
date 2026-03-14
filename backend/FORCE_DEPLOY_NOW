@@ -1,0 +1,2 @@
+DEPLOY_TIME=$(date)
+FORCE_NEW_BUILD=true
