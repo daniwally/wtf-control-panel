@@ -5,6 +5,7 @@ export default function Dashboard() {
   const [agents, setAgents] = useState([]);
   const [metrics, setMetrics] = useState(null);
   const [alerts, setAlerts] = useState([]);
+  const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [connected, setConnected] = useState(false);
@@ -52,6 +53,11 @@ export default function Dashboard() {
       setMetrics(metricsData);
     });
     
+    newSocket.on('activities:update', (activitiesData) => {
+      console.log('📋 Activities update received:', activitiesData);
+      setActivities(activitiesData);
+    });
+    
     setSocket(newSocket);
   };
 
@@ -76,6 +82,12 @@ export default function Dashboard() {
       if (!alertsResponse.ok) throw new Error('Failed to fetch alerts');
       const alertsData = await alertsResponse.json();
       setAlerts(alertsData.data || []);
+      
+      // Fetch activities
+      const activitiesResponse = await fetch(`${apiUrl}/activities`);
+      if (!activitiesResponse.ok) throw new Error('Failed to fetch activities');
+      const activitiesData = await activitiesResponse.json();
+      setActivities(activitiesData.data || []);
       
     } catch (err) {
       setError(err.message);
@@ -165,7 +177,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: '30px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)', gap: '20px' }}>
         {/* Agents Panel */}
         <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px 24px 0', marginBottom: '20px' }}>
@@ -258,6 +270,77 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Live Activities Panel */}
+        <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+          <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb' }}>
+            <h3 style={{ margin: 0, color: '#1f2937', fontSize: '18px' }}>🎬 Live Activities</h3>
+            <p style={{ margin: '4px 0 0 0', color: '#6b7280', fontSize: '12px' }}>
+              Real-time agent tasks • Last 20 activities
+            </p>
+          </div>
+          <div style={{ padding: '20px', maxHeight: '600px', overflowY: 'auto' }}>
+            {activities.length === 0 ? (
+              <div style={{ textAlign: 'center', color: '#6b7280', fontSize: '14px', padding: '40px 20px' }}>
+                🔄 Loading activities...
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: '8px' }}>
+                {activities.slice(0, 20).map((activity) => (
+                  <div
+                    key={activity.id}
+                    style={{
+                      padding: '12px',
+                      background: activity.status === 'active' ? '#fef3c7' : '#f0f9ff',
+                      border: `1px solid ${activity.status === 'active' ? '#fde68a' : '#e0f2fe'}`,
+                      borderRadius: '8px',
+                      fontSize: '12px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                      <span style={{ 
+                        fontWeight: '600', 
+                        color: activity.agentName === 'dora' ? '#059669' : activity.agentName === 'oscar' ? '#7c3aed' : '#dc2626',
+                        fontSize: '11px',
+                        textTransform: 'uppercase'
+                      }}>
+                        {activity.agentName}
+                      </span>
+                      <span style={{ 
+                        color: '#6b7280', 
+                        fontSize: '10px' 
+                      }}>
+                        {new Date(activity.timestamp).toLocaleTimeString()}
+                      </span>
+                    </div>
+                    <div style={{ color: '#374151', lineHeight: '1.3' }}>
+                      {activity.description}
+                    </div>
+                    {activity.status === 'active' && (
+                      <div style={{ 
+                        marginTop: '4px', 
+                        fontSize: '10px', 
+                        color: '#f59e0b',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}>
+                        <div style={{ 
+                          width: '6px', 
+                          height: '6px', 
+                          background: '#f59e0b', 
+                          borderRadius: '50%',
+                          animation: 'pulse 2s infinite'
+                        }}></div>
+                        RUNNING
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Alerts & System Panel */}
         <div>
           {/* Active Alerts */}
@@ -335,12 +418,19 @@ export default function Dashboard() {
         </div>
       </div>
 
+      <style jsx>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
+
       <footer style={{ marginTop: '40px', textAlign: 'center', color: '#6b7280', fontSize: '14px', padding: '20px' }}>
         <p>WTF Control Panel • Real-time Agent Monitoring • {connected ? '🟢 Connected' : '🔴 Disconnected'}</p>
         <p style={{ fontSize: '12px', marginTop: '8px' }}>
           Last update: {new Date().toLocaleTimeString()} • 
           WebSocket: {connected ? 'Active' : 'Inactive'} • 
-          Mode: Production
+          Activities: {activities.length} tracked
         </p>
       </footer>
     </div>

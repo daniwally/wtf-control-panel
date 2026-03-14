@@ -3,6 +3,7 @@ const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
 const RealMetricsLoader = require('./real-metrics-loader');
+const ActivityMonitor = require('./activity-monitor');
 
 const app = express();
 const server = http.createServer(app);
@@ -18,8 +19,12 @@ console.log('🚀 WTF Control Panel API - PRODUCTION MODE');
 console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('PORT:', PORT);
 
-// Initialize real metrics loader
+// Initialize real metrics loader and activity monitor
 const metricsLoader = new RealMetricsLoader();
+const activityMonitor = new ActivityMonitor();
+
+// Start activity monitoring
+activityMonitor.startMonitoring(20); // Refresh every 20 seconds
 
 // CORS
 app.use(cors({
@@ -159,6 +164,7 @@ io.on('connection', async (socket) => {
   // Send initial data
   socket.emit('agents:status', await getCurrentAgents());
   socket.emit('metrics:update', await getCurrentMetrics());
+  socket.emit('activities:update', activityMonitor.getAllActivities());
   
   socket.on('disconnect', () => {
     console.log(`👤 Client disconnected: ${socket.id}`);
@@ -186,6 +192,12 @@ setInterval(() => {
   
   // Update metrics every 30 seconds
   io.emit('metrics:update', await getCurrentMetrics());
+  
+  // Update activities every 20 seconds
+  if (Math.random() > 0.7) { // 30% chance to refresh activities
+    const activities = activityMonitor.getAllActivities();
+    io.emit('activities:update', activities);
+  }
 }, 10000); // Every 10 seconds
 
 async function getCurrentAgents() {
