@@ -139,6 +139,42 @@ app.get('/api/system/status', (req, res) => {
   });
 });
 
+// Activities API
+app.get('/api/activities', (req, res) => {
+  console.log('📋 /api/activities called');
+  
+  const { agent } = req.query;
+  let activities;
+  
+  if (agent) {
+    activities = activityMonitor.getActivitiesForAgent(agent);
+  } else {
+    activities = activityMonitor.getAllActivities();
+  }
+  
+  res.json({
+    success: true,
+    data: activities,
+    timestamp: new Date().toISOString(),
+    mode: 'production'
+  });
+});
+
+// Live activities for specific agent
+app.get('/api/activities/:agentName', (req, res) => {
+  console.log(`📋 /api/activities/${req.params.agentName} called`);
+  
+  const activities = activityMonitor.getActivitiesForAgent(req.params.agentName);
+  
+  res.json({
+    success: true,
+    data: activities,
+    agentName: req.params.agentName,
+    timestamp: new Date().toISOString(),
+    mode: 'production'
+  });
+});
+
 // 404
 app.use('*', (req, res) => {
   console.log('❌ 404:', req.originalUrl);
